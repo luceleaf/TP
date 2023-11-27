@@ -168,5 +168,17 @@ def drawGameOver(app):
                 size = 24, bold = True)
     drawLabel('Game Over', app.mapWidth/2 + app.mapAdd, app.mapHeight/4,
                 size = 60, bold = True, fill = 'Red')
-    drawLabel(f'You survived {app.timeSurvived} seconds', app.mapWidth/2 + app.mapAdd,
-              9*app.mapHeight/16, size = 24)
+    drawLabel(f'You survived {app.count/30} seconds', app.mapWidth/2 + app.mapAdd,
+              6*app.mapHeight/16, size = 24)
+    
+# open function, online
+def drawScoreboard(app):
+    drawLabel('Scoreboard', app.mapWidth/2 + app.mapAdd, app.mapHeight/4,
+                size = 60, bold = True)
+    index = 0
+    for line in app.scores:
+        if line == 0:
+            drawLabel('None', app.mapWidth/2 +app.mapAdd, (6+index)*app.mapHeight/16, size = 24)
+        else:
+            drawLabel(line, app.mapWidth/2 + app.mapAdd, (6+index)*app.mapHeight/16, size = 24)
+        index += 1

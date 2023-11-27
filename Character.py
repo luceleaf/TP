@@ -18,11 +18,12 @@ class Projectile:
                 size = {self.size}''')
     
 class Character:
-    def __init__(self, charName, totalHealth, baseSpeed, size):
+    def __init__(self, charName, totalHealth, baseSpeed, size, color):
         self.charName = charName
         self.totalHealth = totalHealth
         self.baseSpeed = baseSpeed
         self.size = size
+        self.color = color
 
         self.currSpeed = self.baseSpeed
         self.currHealth = totalHealth
@@ -42,6 +43,9 @@ class Character:
     
     def getCurrentHealth(self):
         return self.currHealth
+    
+    def getColor(self):
+        return self.color
 
     def arrowHit(self):
         self.stunTime = (time.perf_counter() - arrow.getStartTime())*0.5
@@ -52,6 +56,6 @@ class Character:
         self.slowTime = (time.perf_counter() - fish.getStartTime())*.75
         self.currHealth -= fish.getStartTime*20
 
-teemo = Character('Teemo', 1000, 50, .1)
-ahri = Character('Ahri', 1500, 40, .15)
-malphite = Character('Malphite', 3000, 30, .20)
+teemo = Character('Teemo', 1000, 50, .1, 'yellow')
+ahri = Character('Ahri', 1500, 40, .15, 'pink')
+malphite = Character('Malphite', 3000, 30, .20, 'purple')

@@ -51,6 +51,9 @@ class Character:
     def getTotalHealth(self):
         return self.totalHealth
     
+    def resetCurrentHealth(self):
+        self.currHealth = self.totalHealth
+    
     def getColor(self):
         return self.color
 

@@ -1,4 +1,5 @@
 from cmu_graphics import *
+from Projectile import *
 
 def drawStartScreen(app):
     drawRect(app.mapWidth/4 + app.mapAdd, app.mapHeight/2, app.mapWidth/2, app.mapHeight/8, 
@@ -97,6 +98,8 @@ def drawMapOne(app, setWidth, setHeight, addX, addY):
         drawLabel(f'{app.sprite.getCurrentHealth()} / {app.sprite.getTotalHealth()}',
                   7*setWidth/8 + app.mapAdd, 3*setHeight/32)
         drawArrow(app)
+        drawBeam(app)
+        drawFish(app)s
 
 def drawMapTwo(app, setWidth, setHeight, addX, addY):
     drawPolygon(6*setWidth/16 + addX + app.mapAdd, 6*setHeight/16 + addY,
@@ -150,7 +153,7 @@ def drawGameOver(app):
                 size = 24, bold = True)
     drawLabel('Game Over', app.mapWidth/2 + app.mapAdd, app.mapHeight/4,
                 size = 60, bold = True, fill = 'Red')
-    drawLabel(f'You survived {app.counter/30} seconds', app.mapWidth/2 + app.mapAdd,
+    drawLabel(f'You survived {int(app.counter/30)} seconds', app.mapWidth/2 + app.mapAdd,
               6*app.mapHeight/16, size = 24)
     
 # open function, online
@@ -169,3 +172,37 @@ def drawArrow(app):
     for arrow in app.arrowList:
         x, y = arrow[0]
         drawCircle(x, y, 20, fill = 'Black')
+
+def drawBeam(app):
+    for beam in app.beamList:
+        xStart, yStart = beam.startCoords
+        xEnd, yEnd = beam.endCoords
+        xMidpoint = abs(xStart - xEnd)
+        yMidpoint = abs(yStart - yEnd)
+        if beam.time > 60:
+            drawRect(xMidpoint, yMidpoint, 2*app.mapWidth, 10, 
+                     align = 'center', rotateAngle = beam.angle, fill = 'Yellow')
+        elif beam.time > 30:
+            drawRect(xMidpoint, yMidpoint, 2*app.mapWidth, 20, 
+                     align = 'center', rotateAngle = beam.angle, fill = 'Yellow')
+        else:
+            drawRect(xMidpoint, yMidpoint, 2*app.mapWidth, 30, 
+                     align = 'center', rotateAngle = beam.angle, fill = 'Yellow')
+            
+def drawFish(app):
+    for fish in app.fishList:
+        if fish.isAtEnd == False:
+            x, y = fish.startCoords
+            drawCircle(x, y, 10, fill = 'lightBlue')
+        else:
+            if fish.endTimer == 0:
+                color = 'Black'
+            else:
+                color = 'Blue'
+            x, y = fish.endCoords
+            drawCircle(x, y, 30, fill = color)
+
+        
+
+
+

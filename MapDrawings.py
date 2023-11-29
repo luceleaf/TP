@@ -52,69 +52,51 @@ def drawCharacterSelect(app):
     drawLabel('he has very high health.', 3*app.mapWidth/4 + app.mapAdd, 57*app.mapHeight/64, bold = True)      
 
 def drawMapOne(app, setWidth, setHeight, addX, addY):
-    drawRect(setWidth/2+addX+app.mapAdd, setHeight/2+addY, 
-             setWidth, 1/4*setHeight, align = 'center', 
-             rotateAngle = 225, fill = 'lightGreen')
-    drawPolygon(addX+app.mapAdd, addY, 
-                setWidth/3 + addX+app.mapAdd, addY, 
-                addX+app.mapAdd, setHeight/3+addY, 
-                fill = 'lightGreen')
-    drawPolygon(setWidth+addX+app.mapAdd, setHeight+addY,
-                setWidth*2/3+addX+app.mapAdd, setHeight+addY,
-                setWidth+addX+app.mapAdd, setHeight*2/3+addY,
-                fill = 'lightGreen')
-    ratio = 2.5
-    # top left obstacle
-    drawPolygon(addX+app.mapAdd, setHeight*1/3+addY,
-                setWidth*app.mathNumber + addX+app.mapAdd, setHeight*(1/3-app.mathNumber)+addY,
-                ratio*setWidth*app.mathNumber + addX+app.mapAdd, setHeight*(1/3+ (ratio-2)*app.mathNumber)+addY,
-                addX+app.mapAdd, setHeight*(1/3+3*app.mathNumber)+addY+app.mapAdd,
-                fill = 'Gray')
-    # top right obstacle
-    drawPolygon(setWidth*1/3 + addX+app.mapAdd, addY,
-                setWidth*(1/3-app.mathNumber) + addX+app.mapAdd, setHeight*app.mathNumber+addY,
-                setWidth*(1/3+(ratio-2)*app.mathNumber) + addX+app.mapAdd, ratio*setHeight*app.mathNumber+addY,
-                setWidth*(1/3+3*app.mathNumber) + addX+app.mapAdd, addY,
-                fill = 'Gray')
-    # bottom left obstacle
-    drawPolygon(setWidth*2/3 + addX+app.mapAdd, setHeight+addY,
-                setWidth*(2/3+app.mathNumber) + addX+app.mapAdd, setHeight - setHeight*app.mathNumber+addY,
-                setWidth*(2/3-(ratio-2)*app.mathNumber) + addX+app.mapAdd, setHeight - ratio*setHeight*app.mathNumber+addY,
-                setWidth*(2/3-3*app.mathNumber) + addX+app.mapAdd, setHeight+addY,
-                fill = 'Gray')
-    # bottom right obstacle
-    drawPolygon(setWidth + addX+app.mapAdd, setHeight*2/3+addY,
-                setWidth - setWidth*app.mathNumber + addX+app.mapAdd, setHeight*(2/3+app.mathNumber)+addY,
-                setWidth -  ratio*setWidth*app.mathNumber + addX+app.mapAdd, setHeight*(2/3 - (ratio-2)*app.mathNumber)+addY,
-                setWidth + addX+app.mapAdd, setHeight*(2/3-3*app.mathNumber)+addY,
-                fill = 'Gray')
-    
-    #left dark grass patch
-    drawPolygon(ratio*setWidth*app.mathNumber + addX+app.mapAdd, setHeight*(1/3+ (ratio-2)*app.mathNumber)+addY,
-                app.mathNumber*setWidth + addX+app.mapAdd, setHeight*(1/3+2*app.mathNumber)+addY,
-                setWidth*(2/3-2*app.mathNumber) + addX+app.mapAdd, setHeight*(1-app.mathNumber)+addY,
-                setWidth*(2/3-(ratio-2)*app.mathNumber) + addX+app.mapAdd, setHeight - ratio*setHeight*app.mathNumber+addY,
-                fill = 'Green')
-    
-    #right dark grass patch
-    drawPolygon(setWidth*(1/3+(ratio-2)*app.mathNumber) + addX+app.mapAdd, ratio*setHeight*app.mathNumber+addY,
-                setWidth*(1/3+2*app.mathNumber) + addX+app.mapAdd, setHeight*app.mathNumber+addY,
-                setWidth*(1-app.mathNumber) + addX+app.mapAdd, setHeight*(2/3-2*app.mathNumber)+addY,
-                setWidth -  ratio*setWidth*app.mathNumber + addX+app.mapAdd, setHeight*(2/3 - (ratio-2)*app.mathNumber)+addY,
-                fill = 'Green')
-    
-    drawPolygon(setWidth*(1-app.mathNumber) + addX+app.mapAdd, setHeight*(2/3-2*app.mathNumber)+addY,
-                setWidth + addX+app.mapAdd, setHeight*(2/3-3*app.mathNumber)+addY,
-                setWidth + addX+app.mapAdd, addY,
-                setWidth*(1/3+3*app.mathNumber) + addX+app.mapAdd, addY,
-                setWidth*(1/3+2*app.mathNumber) + addX+app.mapAdd, setHeight*app.mathNumber+addY,
-                fill = 'lightBlue')
-    drawPolygon(app.mathNumber*setWidth + addX+app.mapAdd, setHeight*(1/3+2*app.mathNumber)+addY,
-                addX+app.mapAdd, setHeight*(1/3+3*app.mathNumber)+addY,
-                addX+app.mapAdd, setHeight+addY,
-                setWidth*(2/3-3*app.mathNumber) + addX+app.mapAdd, setHeight+addY,
-                setWidth*(2/3-2*app.mathNumber) + addX+app.mapAdd, setHeight*(1-app.mathNumber)+addY,
-                fill = 'lightBlue')
+    #grass portions of map
+    drawRect(3*setWidth/8 + addX + app.mapAdd, addY,
+             setWidth/4, setHeight, fill = 'lightGreen')
+    drawRect(addX + app.mapAdd, addY,
+             3*setWidth/8, 2*setHeight/8, fill = 'lightGreen')
+    drawRect(5*setWidth/8 + addX + app.mapAdd, addY,
+             3*setWidth/8, 2*setHeight/8, fill = 'lightGreen')
+    drawRect(addX + app.mapAdd, 6*setHeight/8 + addY,
+             3*setWidth/8, 2*setHeight/8, fill = 'lightGreen')
+    drawRect(5*setWidth/8 + addX + app.mapAdd, 6*setHeight/8 + addY,
+             3*setWidth/8, 2*setHeight/8, fill = 'lightGreen')
+    #top left obstacle
+    drawRect(addX + app.mapAdd, 2*setHeight/8 + addY,
+             3*setWidth/8, setHeight/8, fill = 'Gray')
+    #bottom left obstacle
+    drawRect(addX + app.mapAdd, 5*setHeight/8 + addY,
+             3*setWidth/8, setHeight/8, fill = 'Gray')
+    #top right obstacle
+    drawRect(5*setWidth/8 + addX + app.mapAdd, 2*setHeight/8 + addY,
+             3*setWidth/8, setHeight/8, fill = 'Gray')
+    #bottom right obstacle
+    drawRect(5*setWidth/8 + addX + app.mapAdd, 5*setHeight/8 + addY,
+             3*setWidth/8, setHeight/8, fill = 'Gray')
+    #water portion of map
+    drawRect(addX + app.mapAdd, 3*setHeight/8 + addY,
+             2*setWidth/8, 2*setHeight/8, fill = 'lightBlue')
+    drawRect(6*setWidth/8 + addX + app.mapAdd, 3*setHeight/8 + addY,
+             2*setWidth/8, 2*setHeight/8, fill = 'lightBlue')
+    #green portion of map
+    drawRect(2*setWidth/8 + app.mapAdd + addX, 3*setHeight/8 + addY,
+             setWidth/8, 2*setHeight/8, fill = 'Green')
+    drawRect(5*setWidth/8 + app.mapAdd + addX, 3*setHeight/8 + addY,
+             setWidth/8, 2*setHeight/8, fill = 'Green')
+    #draw health tracker
+    if addX == 0 and addY == 0:
+        currHealthRatio = app.sprite.getCurrentHealth()/app.sprite.getTotalHealth()
+        drawRect(6*setWidth/8 + app.mapAdd, 0, 
+                2*setWidth/8, setHeight/8, fill = 'White', border = 'Black')
+        drawRect(6*setWidth/8 + app.mapAdd, 0,
+                 2*setWidth/8, setHeight/16, border = 'Black', fill = 'Gray')
+        drawRect(6*setWidth/8 + app.mapAdd, 0,
+                 2*setWidth/8*currHealthRatio, setHeight/16, border = 'Black', fill = 'darkRed')
+        drawLabel(f'{app.sprite.getCurrentHealth()} / {app.sprite.getTotalHealth()}',
+                  7*setWidth/8 + app.mapAdd, 3*setHeight/32)
+        drawArrow(app)
 
 def drawMapTwo(app, setWidth, setHeight, addX, addY):
     drawPolygon(6*setWidth/16 + addX + app.mapAdd, 6*setHeight/16 + addY,
@@ -182,3 +164,8 @@ def drawScoreboard(app):
         else:
             drawLabel(line, app.mapWidth/2 + app.mapAdd, (6+index)*app.mapHeight/16, size = 24)
         index += 1
+
+def drawArrow(app):
+    for arrow in app.arrowList:
+        x, y = arrow[0]
+        drawCircle(x, y, 5, fill = 'Black')

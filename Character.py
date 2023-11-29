@@ -2,13 +2,17 @@ import time
 import random
 
 class Projectile:
-    def __init__(self, name, size):
+    def __init__(self, name, size, effect):
         self.name = name
         self.size = size
         self.startTime = time.perf_counter()
+        self.effect = effect
     
     def getSize(self):
         return self.size
+    
+    def getEffect(self):
+        return self.effect
     
     def getStartTime(self):
         return self.startTime
@@ -43,6 +47,9 @@ class Character:
     
     def getCurrentHealth(self):
         return self.currHealth
+    
+    def getTotalHealth(self):
+        return self.totalHealth
     
     def getColor(self):
         return self.color

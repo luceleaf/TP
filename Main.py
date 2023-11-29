@@ -31,6 +31,7 @@ def onAppStart(app):
     app.beamList = []
     app.fishList = []
     app.hasUpgrade = True
+    app.charSize = 1
     scores = open('scoreboard.txt', 'r')
     for line in scores:
         app.scores.append(int(float(line)))
@@ -56,9 +57,9 @@ def onStep(app):
         app.counter +=1
         characterMove(app, 1)
         arrowMove(app)
-        arrowRemover(app)
         arrowCollision(app)
         beamChecker(app)
+        fishCollision(app)
         fishMove(app)
     if app.counter != 0 and app.counter % 60 == 0:
         sendProjectile(app)
@@ -136,6 +137,7 @@ def onMousePress(app, mouseX, mouseY):
             app.mapSelect = True
             app.sprite = malphite
     elif app.mapSelect == True:
+        app.charSize = app.sprite.size
         if (app.mapWidth/8 + app.mapAdd <= mouseX <= app.mapWidth/8 + app.mapWidth/4 + app.mapAdd and
             3*app.mapHeight/8 <= mouseY <= 3*app.mapHeight/8+app.mapHeight/4):
             app.mapSelect = False
@@ -191,35 +193,6 @@ def updateScoreboard(app):
         for score in app.scores:
             f.write(str(int(score)))
 
-def sendProjectile(app):
-    index = randrange(0,3)
-    if index == 0:
-        shootArrow(app)
-    elif index == 1:
-        shootBeam(app)
-    elif index == 2:
-        shootFish(app)
-
-def shootArrow(app):
-    startCoords = createCoords(app)
-    endCoords = createCoords(app)
-    startX, startY = startCoords
-    endX, endY = endCoords
-    while startX == endX or startY == endY:
-        startCoords = createCoords(app)
-        endCoords = createCoords(app)
-        startX, startY = startCoords
-        endX, endY = endCoords
-    startTime = time.time()
-    startTime = int(startTime)
-    arrowInfo = [startCoords, endCoords, startTime]
-    app.arrowList.append(arrowInfo)
-
-def shootBeam(app):
-    startCoords = createCoords(app)
-    playerLocation = (app.charX, app.charY)
-    app.beamList.append(beamProjectiles(startCoords, playerLocation, app.mapWidth, app.mapHeight))
-
 def createCoords(app):
     choice = randrange(1,5)
     if choice == 1:
@@ -230,50 +203,11 @@ def createCoords(app):
         return (randrange(app.mapAdd, app.mapWidth+app.mapAdd), 0)
     elif choice == 4:
         return (randrange(app.mapAdd, app.mapWidth+app.mapAdd), app.mapHeight)
-
-def shootFish(app):
-    startCoords = createCoords(app)
-    #RANDRANGE FOR NOW, LATER CREATE FUNCTION THAT SEES WHERE CHARACTER LIKES TO GO
-    endCoords = (randrange(0, app.mapWidth), randrange(0, app.mapHeight))
-    app.fishList.append(fishProjectiles(startCoords, endCoords))
     
-def arrowMove(app): 
-    for arrow in app.arrowList:
-        x, y = arrow[0]
-        moveX, moveY = arrow[1]
-        xDirection = direction(x, moveX)
-        yDirection = direction(y, moveY)
-        if app.map1 == True:
-            if isLegalOneX(app, x, xDirection, y):
-                x += xDirection
-            if isLegalOneY(app, y, yDirection, x):
-                y += yDirection
-        arrow[0] = (x,y)
-
 def direction(original, new):
     if original > new:
         return -1
     return 1
-
-def arrowRemover(app):
-    aliveArrows = []
-    for index in range (len(app.arrowList)):
-        x, y = app.arrowList[index][0]
-        endX, endY = app.arrowList[index][1]
-        if x != endX or endY != y:
-            aliveArrows.append(app.arrowList[index])
-    app.arrowList = aliveArrows
-
-def arrowCollision(app):
-    aliveArrows = []
-    for index in range (len(app.arrowList)):
-        x, y = app.arrowList[index][0]
-        if dist(x, y, app.charX, app.charY) <= 20+20:
-            startTime = app.arrowList[index][2]
-            app.sprite.arrowHit(startTime)
-        else:
-            aliveArrows.append(app.arrowList[index])
-    app.arrowList = aliveArrows
 
 def healthChecker(app):
     if app.sprite.getCurrentHealth() <= 0:
@@ -288,29 +222,5 @@ def beamChecker(app):
         if beam.getTime() != 0:
             aliveBeams.append(beam)
     app.beamList = aliveBeams
-
-def fishMove(app):
-    aliveFish = []
-    for fish in app.fishList:
-        if fish.isAtEnd == False:
-            x, y = fish.startCoords
-            moveX, moveY = fish.endCoords
-            xDirection = direction(x, moveX)
-            yDirection = direction(y, moveY)
-            if app.map1 == True:
-                if isLegalOneX(app, x, xDirection, y):
-                    x += xDirection
-                if isLegalOneY(app, y, yDirection, x):
-                    y += yDirection
-            fish.startCoords = (x,y)
-            if fish.startCoords == fish.endCoords:
-                fish.isAtEnd = True
-            aliveFish.append(fish)
-        else:
-            if fish.endTimer !=0:
-                aliveFish.append(fish)
-            fish.endTimer -= 1
-    app.fishList = aliveFish
-
 
 runApp()

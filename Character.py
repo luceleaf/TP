@@ -1,26 +1,6 @@
 import time
 import random
 
-class Projectile:
-    def __init__(self, name, size, effect):
-        self.name = name
-        self.size = size
-        self.startTime = time.perf_counter()
-        self.effect = effect
-    
-    def getSize(self):
-        return self.size
-    
-    def getEffect(self):
-        return self.effect
-    
-    def getStartTime(self):
-        return self.startTime
-    
-    def __repr__(self):
-        return (f'''name = {self.name},
-                size = {self.size}''')
-    
 class Character:
     def __init__(self, charName, totalHealth, baseSpeed, size, color):
         self.charName = charName
@@ -57,15 +37,13 @@ class Character:
     def getColor(self):
         return self.color
 
-    def arrowHit(self, startTime):
+    def arrowHit(self, timeinAir):
         self.currHealth -= 75
-        self.stunTime = (int(time.time()) - startTime)**0.5
+        self.stunTime = timeinAir ** 0.5
 
-    def fishHit(self):
-        self.currSpeed = self.baseSpeed * 0.85
-        self.slowTime = (int(time.time()) - fish.getStartTime())*.75
-        self.currHealth -= fish.getStartTime*20
+    def fishCollision(self):
+        self.currHealth -= 20
 
-teemo = Character('Teemo', 1, 50, .1, 'yellow')
-ahri = Character('Ahri', 1500, 40, .15, 'pink')
-malphite = Character('Malphite', 3000, 30, .20, 'purple')
+teemo = Character('Teemo', 1, 50, 20, 'yellow')
+ahri = Character('Ahri', 1500, 40, 20, 'pink')
+malphite = Character('Malphite', 3000, 30, 20, 'purple')

@@ -1,5 +1,4 @@
 from cmu_graphics import *
-from Projectile import *
 
 def drawStartScreen(app):
     drawRect(app.mapWidth/4 + app.mapAdd, app.mapHeight/2, app.mapWidth/2, app.mapHeight/8, 
@@ -86,8 +85,10 @@ def drawMapOne(app, setWidth, setHeight, addX, addY):
              setWidth/8, 2*setHeight/8, fill = 'Green')
     drawRect(5*setWidth/8 + app.mapAdd + addX, 3*setHeight/8 + addY,
              setWidth/8, 2*setHeight/8, fill = 'Green')
-    #draw health tracker
     if addX == 0 and addY == 0 and app.sprite.getCurrentHealth() > 0:
+        drawArrow(app)
+        drawBeam(app)
+        drawFish(app)
         currHealthRatio = app.sprite.getCurrentHealth()/app.sprite.getTotalHealth()
         drawRect(6*setWidth/8 + app.mapAdd, 0, 
                 2*setWidth/8, setHeight/8, fill = 'White', border = 'Black')
@@ -97,9 +98,6 @@ def drawMapOne(app, setWidth, setHeight, addX, addY):
                  2*setWidth/8*currHealthRatio, setHeight/16, border = 'Black', fill = 'darkRed')
         drawLabel(f'{app.sprite.getCurrentHealth()} / {app.sprite.getTotalHealth()}',
                   7*setWidth/8 + app.mapAdd, 3*setHeight/32)
-        drawArrow(app)
-        drawBeam(app)
-        drawFish(app)s
 
 def drawMapTwo(app, setWidth, setHeight, addX, addY):
     drawPolygon(6*setWidth/16 + addX + app.mapAdd, 6*setHeight/16 + addY,
@@ -170,7 +168,7 @@ def drawScoreboard(app):
 
 def drawArrow(app):
     for arrow in app.arrowList:
-        x, y = arrow[0]
+        x, y = arrow.getStartCoords()
         drawCircle(x, y, 20, fill = 'Black')
 
 def drawBeam(app):
@@ -195,11 +193,10 @@ def drawFish(app):
             x, y = fish.startCoords
             drawCircle(x, y, 10, fill = 'lightBlue')
         else:
-            if fish.endTimer == 0:
-                color = 'Black'
-            else:
+            color = 'lightBlue'
+            if fish.endTimer <= 30:
                 color = 'Blue'
-            x, y = fish.endCoords
+            x, y = fish.startCoords
             drawCircle(x, y, 30, fill = color)
 
         

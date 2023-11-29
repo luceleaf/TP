@@ -86,7 +86,7 @@ def drawMapOne(app, setWidth, setHeight, addX, addY):
     drawRect(5*setWidth/8 + app.mapAdd + addX, 3*setHeight/8 + addY,
              setWidth/8, 2*setHeight/8, fill = 'Green')
     #draw health tracker
-    if addX == 0 and addY == 0:
+    if addX == 0 and addY == 0 and app.sprite.getCurrentHealth() > 0:
         currHealthRatio = app.sprite.getCurrentHealth()/app.sprite.getTotalHealth()
         drawRect(6*setWidth/8 + app.mapAdd, 0, 
                 2*setWidth/8, setHeight/8, fill = 'White', border = 'Black')
@@ -150,7 +150,7 @@ def drawGameOver(app):
                 size = 24, bold = True)
     drawLabel('Game Over', app.mapWidth/2 + app.mapAdd, app.mapHeight/4,
                 size = 60, bold = True, fill = 'Red')
-    drawLabel(f'You survived {app.count/30} seconds', app.mapWidth/2 + app.mapAdd,
+    drawLabel(f'You survived {app.counter/30} seconds', app.mapWidth/2 + app.mapAdd,
               6*app.mapHeight/16, size = 24)
     
 # open function, online
@@ -168,4 +168,4 @@ def drawScoreboard(app):
 def drawArrow(app):
     for arrow in app.arrowList:
         x, y = arrow[0]
-        drawCircle(x, y, 5, fill = 'Black')
+        drawCircle(x, y, 20, fill = 'Black')

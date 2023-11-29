@@ -23,9 +23,21 @@ def onAppStart(app):
     app.moveToX = None
     app.moveToY = None
     app.sprite = None
-    app.counter = 0
     app.scores = []
+    app.counter = 0
     app.projectiles = ['arrow', 'beam', 'fish']
+    app.arrowList = []
+    scores = open('scoreboard.txt', 'r')
+    for line in scores:
+        app.scores.append(int(line))
+
+def gameReset(app):
+    app.charX = app.mapWidth/2
+    app.charY = app.mapWidth/2
+    app.moveToX = None
+    app.moveToY = None
+    app.sprite = None
+    app.counter = 0
     app.arrowList = []
     scores = open('scoreboard.txt', 'r')
     for line in scores:
@@ -41,19 +53,21 @@ def onStep(app):
             moveX = -1
         else:
             moveX = 1
-        if isLegalOneX(app, app.charX, moveX):
+        if isLegalOneX(app, app.charX, moveX, app.charY):
             app.charX += moveX
     if app.moveToY != None and app.moveToY != app.charY:
         if app.charY > app.moveToY:
             moveY = -1
         else:
             moveY = 1
-        if isLegalOneY(app, app.charY, moveY):
+        if isLegalOneY(app, app.charY, moveY, app.charX):
             app.charY += moveY
     if app.map1 == True or app.map2 == True:
+        healthChecker(app)
         app.counter +=1
         arrowMove(app)
         arrowRemover(app)
+        arrowCollision(app)
     if app.counter != 0 and app.counter % 60 == 0:
         sendProjectile(app)
         
@@ -74,7 +88,7 @@ def redrawAll(app):
         drawMapSelect(app)
     elif app.map1 == True:
         drawMapOne(app, app.mapWidth, app.mapHeight, 0, 0)
-        drawCircle(app.charX, app.charY, 5, fill = app.sprite.getColor())
+        drawCircle(app.charX, app.charY, 20, fill = app.sprite.getColor())
     elif app.map2 == True:
         drawMapTwo(app, app.mapWidth, app.mapHeight, 0, 0)
         drawCircle(app.charX, app.charY, 5, fill = app.sprite.getColor())
@@ -138,12 +152,6 @@ def onKeyPress(app, key):
             app.scoreboard = False
             app.startScreen = True
 
-def isLegal(app):
-    if (app.mathNumber*app.width < app.charX < 2*app.mathNumber*app.width) and \
-    (1/3*app.mapHeight - app.mathNumber < app.charY < 1/3*app.mapHeight):
-        app.charX = app.charY = 0
-    pass
-
 def dist(x0, y0, x1, y1):
     return ((x1-x0)**2 + (y1-y0)**2)**(1/2)
 
@@ -156,7 +164,7 @@ def updateScoreboard(app):
     open('scoreboard.txt', 'w').close()
     with open('scoreboard.txt', 'w') as f:
         for score in app.scores:
-            f.write(score)
+            f.write(str(score))
 
 def sendProjectile(app):
     index = randrange(0,3)
@@ -177,7 +185,8 @@ def shootArrow(app):
         endCoords = createCoords(app)
         startX, startY = startCoords
         endX, endY = endCoords
-    startTime = time.perf_counter()
+    startTime = time.time()
+    startTime = int(startTime)
     arrowInfo = [startCoords, endCoords, startTime]
     app.arrowList.append(arrowInfo)
 
@@ -205,9 +214,9 @@ def arrowMove(app):
         xDirection = direction(x, moveX)
         yDirection = direction(y, moveY)
         if app.map1 == True:
-            if isLegalOneX(app, x, xDirection):
+            if isLegalOneX(app, x, xDirection, y):
                 x += xDirection
-            if isLegalOneY(app, y, yDirection):
+            if isLegalOneY(app, y, yDirection, x):
                 y += yDirection
         arrow[0] = (x,y)
 
@@ -221,8 +230,26 @@ def arrowRemover(app):
     for index in range (len(app.arrowList)):
         x, y = app.arrowList[index][0]
         endX, endY = app.arrowList[index][1]
-        if x != endX and endY != y:
+        if x != endX or endY != y:
             aliveArrows.append(app.arrowList[index])
     app.arrowList = aliveArrows
+
+def arrowCollision(app):
+    aliveArrows = []
+    for index in range (len(app.arrowList)):
+        x, y = app.arrowList[index][0]
+        if dist(x, y, app.charX, app.charY) <= 20+20:
+            startTime = app.arrowList[index][2]
+            app.sprite.arrowHit(startTime)
+        else:
+            aliveArrows.append(app.arrowList[index])
+    app.arrowList = aliveArrows
+
+def healthChecker(app):
+    if app.sprite.getCurrentHealth() <= 0:
+        app.gameOver = True
+        app.map1 = False
+        gameReset(app)
+        updateScoreboard(app)
 
 runApp()

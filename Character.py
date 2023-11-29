@@ -54,15 +54,15 @@ class Character:
     def getColor(self):
         return self.color
 
-    def arrowHit(self):
-        self.stunTime = (time.perf_counter() - arrow.getStartTime())*0.5
+    def arrowHit(self, startTime):
         self.currHealth -= 75
+        self.stunTime = (int(time.time()) - startTime)**0.5
 
     def fishHit(self):
         self.currSpeed = self.baseSpeed * 0.85
-        self.slowTime = (time.perf_counter() - fish.getStartTime())*.75
+        self.slowTime = (int(time.time()) - fish.getStartTime())*.75
         self.currHealth -= fish.getStartTime*20
 
-teemo = Character('Teemo', 1000, 50, .1, 'yellow')
+teemo = Character('Teemo', 1, 50, .1, 'yellow')
 ahri = Character('Ahri', 1500, 40, .15, 'pink')
 malphite = Character('Malphite', 3000, 30, .20, 'purple')

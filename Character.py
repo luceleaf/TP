@@ -44,6 +44,12 @@ class Character:
     def fishCollision(self):
         self.currHealth -= 20
 
+    def smallBombCollision(self):
+        self.currHealth -= 100
+
+    def largeBombCollision(self):
+        self.currHealth -= 20
+
 teemo = Character('Teemo', 1, 50, 20, 'yellow')
 ahri = Character('Ahri', 1500, 40, 20, 'pink')
 malphite = Character('Malphite', 3000, 30, 20, 'purple')

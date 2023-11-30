@@ -3,16 +3,20 @@ from Character import *
 from MapDrawings import *
 from LegalFunctions import *
 from Projectile import *
+from wall import *
 import random
-import time
 
 def onAppStart(app):
+    fullGameReset(app)
+
+def fullGameReset(app):
     app.startScreen = True
     app.scoreboard = False
     app.characterSelect = False
     app.mapSelect = False
     app.map1 = False
     app.map2 = False
+    app.gamePaused = False
     app.gameOver = False
     app.width = 700
     app.height = 700
@@ -28,40 +32,50 @@ def onAppStart(app):
     app.counter = 0
     app.projectiles = ['arrow', 'beam', 'fish']
     app.arrowList = []
-    app.beamList = []
+    app.charCoords = []
     app.fishList = []
-    app.hasUpgrade = True
-    app.charSize = 1
+    app.bombList = []
+    wall1 = Wall(app.mapAdd, 2*app.mapHeight/8,
+             3*app.mapWidth/8, app.mapHeight/8)
+    wall2 = Wall(app.mapAdd, 5*app.mapHeight/8,
+             3*app.mapWidth/8, app.mapHeight/8)
+    wall3 = Wall(5*app.mapWidth/8 + app.mapAdd, 2*app.mapHeight/8,
+             3*app.mapWidth/8, app.mapHeight/8)
+    wall4 = Wall(5*app.mapWidth/8 + app.mapAdd, 5*app.mapHeight/8,
+             3*app.mapWidth/8, app.mapHeight/8)
+    app.walls = [wall1,wall2,wall3,wall4]
+    
+    app.hasUpgrade = False
+    app.charSize = None
     scores = open('scoreboard.txt', 'r')
     for line in scores:
         app.scores.append(int(float(line)))
 
-def fullGameReset(app):
-    app.charX = app.mapWidth/2
-    app.charY = app.mapWidth/2
-    app.moveToX = None
-    app.moveToY = None
-    app.sprite = None
+def softReset(app):
     app.counter = 0
     app.arrowList = []
-    scores = open('scoreboard.txt', 'r')
-    for line in scores:
-        app.scores.append(int(line))
+    app.charCoords = []
+    app.fishList = []
+    app.bombList = []
+    app.hasUpgrade = False
+    app.gamePaused = False
 
 def onStep(app):
     if app.width != app.height:
         canvasSize(app)
         app.square = False
-    if app.map1 == True or app.map2 == True:
+    if app.map1 and not app.gamePaused:
         healthChecker(app)
         app.counter +=1
         characterMove(app, 1)
         arrowMove(app)
         arrowCollision(app)
-        beamChecker(app)
-        fishCollision(app)
         fishMove(app)
+        fishCollision(app)
+        bombMove(app)
+        bombCollision(app)
     if app.counter != 0 and app.counter % 60 == 0:
+        app.charCoords.append((app.charX, app.charY))
         sendProjectile(app)
     if app.counter == 3600:
         app.hasUpgrade = True
@@ -90,25 +104,24 @@ def canvasSize(app):
         app.mapAdd = (max(app.width, app.height) - mapSize)/2
 
 def redrawAll(app):
-    if app.startScreen == True:
+    if app.startScreen:
         drawStartScreen(app)
-    elif app.scoreboard == True:
+    elif app.scoreboard:
         drawScoreboard(app)
-    elif app.characterSelect == True:
+    elif app.characterSelect:
         drawCharacterSelect(app)
-    elif app.mapSelect == True:
+    elif app.mapSelect:
         drawMapSelect(app)
-    elif app.map1 == True:
+    elif app.map1:
         drawMapOne(app, app.mapWidth, app.mapHeight, 0, 0)
         drawCircle(app.charX, app.charY, 20, fill = app.sprite.getColor())
-    elif app.map2 == True:
+    elif app.map2:
         drawMapTwo(app, app.mapWidth, app.mapHeight, 0, 0)
         drawCircle(app.charX, app.charY, 5, fill = app.sprite.getColor())
-    elif app.gameOver == True:
+    elif app.gameOver:
         drawGameOver(app)
-    if app.square == False:
-        drawRect(app.mapAdd, 0, app.mapWidth, app.mapHeight, 
-                 fill = None, border = 'Black')
+    if app.gamePaused:
+        drawPauseScreen(app)
 
 def onMousePress(app, mouseX, mouseY):
     if app.map1 == True or app.map2 == True:
@@ -150,6 +163,7 @@ def onMousePress(app, mouseX, mouseY):
         if (app.mapWidth/4 + app.mapAdd <= mouseX <= app.mapWidth/4 + app.mapWidth/2 + app.mapAdd and
             app.mapHeight/2 <= mouseY <= app.mapHeight/2 + app.mapHeight/8):
             app.sprite.resetCurrentHealth()
+            softReset(app)
             app.map1 = True   
             app.gameOver = False
         elif (app.mapWidth/4 + app.mapAdd <= mouseX <= app.mapWidth/4 + app.mapWidth/2 + app.mapAdd and
@@ -157,7 +171,6 @@ def onMousePress(app, mouseX, mouseY):
             app.gameOver = False
             app.startScreen = True
             fullGameReset(app)
-
 
 def onKeyPress(app, key):
     if key == 'left':
@@ -176,8 +189,11 @@ def onKeyPress(app, key):
         elif app.scoreboard == True:
             app.scoreboard = False
             app.startScreen = True
-    if key == 'f' and app.hasUpgrade == True:
-        characterMove(app, 50)
+    if app.map1:
+        if key == 'f' and app.hasUpgrade == True:
+            characterMove(app, 50)
+        if key == 'p':
+            app.gamePaused = not app.gamePaused
 
 def dist(x0, y0, x1, y1):
     return ((x1-x0)**2 + (y1-y0)**2)**(1/2)
@@ -214,13 +230,5 @@ def healthChecker(app):
         app.gameOver = True
         app.map1 = False
         updateScoreboard(app)
-
-def beamChecker(app):
-    aliveBeams = []
-    for beam in app.beamList:
-        beam.lowerTime()
-        if beam.getTime() != 0:
-            aliveBeams.append(beam)
-    app.beamList = aliveBeams
 
 runApp()

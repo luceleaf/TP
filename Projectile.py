@@ -1,38 +1,102 @@
-import time
 import math
+import random
 from MapDrawings import *
 from cmu_graphics import *
 from LegalFunctions import *
 
-def createCoords(app):
-    choice = randrange(1,5)
-    if choice == 1:
-        return (app.mapAdd, randrange(0, app.mapHeight))
-    elif choice == 2:
-        return (app.mapWidth + app.mapAdd, randrange(0, app.mapHeight))
-    elif choice == 3:
-        return (randrange(app.mapAdd, app.mapWidth+app.mapAdd), 0)
-    elif choice == 4:
-        return (randrange(app.mapAdd, app.mapWidth+app.mapAdd), app.mapHeight)
+class arrowProjectiles:
+    def __init__(self, startCoords, direction):
+        self.startCoords = startCoords
+        self.direction = direction
+        self.time = 0
+        self.arrowSize = 20
     
-def chooseDirection(app):
-    directions = [(1, 1), (-1, 1), (1, -1), (-1, -1)]
-    choice = randrange(0, 4)
-    return directions[choice]
+    def getStartCoords(self):
+        return self.startCoords
+    
+    def getDirection(self):
+        return self.direction
+    
+    def __repr__(self):
+        return (f'''name = {self.name},
+                size = {self.size}''')
+    
+class fishProjectiles:
+    def __init__(self, startCoords):
+        self.startCoords = startCoords
+        self.isAtEnd = False
+        self.endTimer = 60
+        self.moves = []
+
+    def getStartCoords(self):
+        return self.startCoords
+    
+class bombProjectiles:
+    def __init__(self, startCoords, endCoords):
+        self.startCoords = startCoords
+        self.endCoords = endCoords
+        self.endTimer = 60
+        self.isAtEnd = False
+        self.countStationary = 0
+        self.moves = []
+
+    def getStartCoords(self):
+        return self.startCoords
+    
+    def getEndCoords(self):
+        return self.endCoords
 
 def sendProjectile(app):
     index = randrange(0,3)
     if index == 0:
         shootArrow(app)
     elif index == 1:
-        shootBeam(app)
+        shootBomb(app)
     elif index == 2:
         shootFish(app)
 
-def shootBeam(app):
+def shootBomb(app):
     startCoords = createCoords(app)
-    playerLocation = (app.charX, app.charY)
-    app.beamList.append(beamProjectiles(startCoords, playerLocation, app.mapWidth, app.mapHeight))
+    while spawninWall(app, startCoords):
+        startCoords = createCoords(app)
+    endCoords = findModeCoords(app)
+    app.bombList.append(bombProjectiles(startCoords, endCoords))
+
+def bombMove(app):
+    aliveBombs = []
+    for bomb in app.bombList:
+        x, y = bomb.startCoords
+        bomb.moves.append((x,y))
+        xEnd, yEnd = bomb.endCoords
+        if x == xEnd and y == yEnd or notMoving(bomb.moves):
+            bomb.isAtEnd = True
+        moveX, moveY = bomb.endCoords
+        xDirection = direction(x, moveX)
+        yDirection = direction(y, moveY)
+        if isLegalOneX(app, x, xDirection, y):
+            x += xDirection
+        if isLegalOneY(app, y, yDirection, x):
+            y += yDirection
+        if bomb.isAtEnd == False:
+            bomb.startCoords = (x,y)
+            aliveBombs.append(bomb)
+        else:
+            if bomb.endTimer != 0:
+                bomb.endTimer -= 1
+                aliveBombs.append(bomb)
+    app.bombList = aliveBombs
+
+def bombCollision(app):
+    aliveBombs = []
+    for bomb in app.bombList:
+        x, y = bomb.startCoords
+        if not bomb.isAtEnd and dist(x, y, app.charX, app.charY) <= app.charSize + 10:
+            app.sprite.smallBombCollision()
+        elif bomb.isAtEnd and dist(x, y, app.charX, app.charY) <= app.charSize + 30:
+            app.sprite.largeBombCollision()
+        else:
+            aliveBombs.append(bomb)
+    app.bombList = aliveBombs
 
 def shootFish(app):
     startCoords = createCoords(app)
@@ -43,6 +107,10 @@ def fishMove(app):
     for fish in app.fishList:
         if fish.isAtEnd == False:
             x, y = fish.startCoords
+            fish.moves.append((x,y))
+            if notMoving(fish.moves):
+                fish.isAtEnd = True
+                continue
             moveX, moveY = app.charX, app.charY
             xDirection = direction(x, moveX)
             yDirection = direction(y, moveY)
@@ -63,14 +131,15 @@ def fishCollision(app):
         x, y = fish.startCoords
         if dist(x, y, app.charX, app.charY) <= app.charSize + 10:
             fish.isAtEnd = True
-            if fish.endTimer <= 30:
+        elif fish.isAtEnd and fish.endTimer <= 30 and dist(x, y, app.charX, app.charY) <= app.charSize + 30:
                 app.sprite.fishCollision()
 
 def shootArrow(app):
     startCoords = createCoords(app)
     direction = chooseDirection(app)
-    while sameSideChecker(startCoords, direction):
+    while spawninWall(app, startCoords):
         startCoords = createCoords(app)
+    while sameSideChecker(startCoords, direction):
         direction = chooseDirection(app)
     app.arrowList.append(arrowProjectiles(startCoords, direction))
 
@@ -117,6 +186,22 @@ def sameSideChecker(startCoords, direction):
         return True
     return False
 
+def createCoords(app):
+    choice = randrange(1,5)
+    if choice == 1:
+        return (app.mapAdd, randrange(0, app.mapHeight))
+    elif choice == 2:
+        return (app.mapWidth + app.mapAdd, randrange(0, app.mapHeight))
+    elif choice == 3:
+        return (randrange(app.mapAdd, app.mapWidth+app.mapAdd), 0)
+    elif choice == 4:
+        return (randrange(app.mapAdd, app.mapWidth+app.mapAdd), app.mapHeight)
+    
+def chooseDirection(app):
+    directions = [(1, 1), (-1, 1), (1, -1), (-1, -1)]
+    choice = randrange(0, 4)
+    return directions[choice]
+
 def dist(x0, y0, x1, y1):
     return ((x1-x0)**2 + (y1-y0)**2)**(1/2)
 
@@ -125,87 +210,22 @@ def direction(original, new):
         return -1
     return 1
 
-class arrowProjectiles:
-    def __init__(self, startCoords, direction):
-        self.startCoords = startCoords
-        self.direction = direction
-        self.time = 0
-        self.arrowSize = 20
+def findModeCoords(app):
+    setCoords = set(app.charCoords)
+    bestCoords = None
+    bestCount = 0
+    for coords in setCoords:
+        currCount = app.charCoords.count(coords)
+        if currCount > bestCount:
+            bestCount = currCount
+            bestCoords = coords
+    return bestCoords
     
-    def getStartCoords(self):
-        return self.startCoords
-    
-    def getDirection(self):
-        return self.direction
-    
-    def __repr__(self):
-        return (f'''name = {self.name},
-                size = {self.size}''')
-    
-
-class beamProjectiles:
-    def __init__(self, startCoords, playerLocation, mapWidth, mapHeight):
-        self.startCoords = startCoords
-        self.playerLocation = playerLocation
-        x0, y0 = self.startCoords
-        x1, y1 = self.playerLocation
-        self.slopeY = y1-y0
-        self.slopeX = x1-x0
-        self.time = 90
-        self.mapWidth = mapWidth
-        self.mapHeight = mapHeight
-        #finds end coords
-        x0, y0 = self.startCoords
-        xEnd = x0 + self.slopeX
-        yEnd = y0 + self.slopeY
-        while (0 < xEnd < self.mapWidth or
-               0 < yEnd < self.mapHeight):
-            xEnd += self.slopeX
-            yEnd += self.slopeY
-        if xEnd < 0:
-            xEnd = 0
-            yEnd = y0 + (y1-y0)/(x1-x0)*xEnd
-        elif xEnd > self.mapWidth:
-            xEnd = self.mapWidth
-            yEnd = y0 + (y1-y0)/(x1-x0)*xEnd
-        elif yEnd < 0:
-            yEnd = 0
-            xEnd = y0 + (y1-y0)/(x1-x0)*yEnd
-        elif yEnd > self.mapHeight:
-            yEnd = self.mapHeight
-            xEnd = y0 + (y1-y0)/(x1-x0)*yEnd
-        self.endCoords = xEnd, yEnd
-        #finds angle
-        x0, y0 = self.startCoords
-        x1, y1 = self.endCoords
-        thetaStart = math.atan2(y0, x0)
-        thetaEnd = math.atan2(y1, x1)
-        r = (thetaEnd - thetaStart) * (180/math.pi)
-        if r < 0:
-            r%= 360
-        self.angle = r
-
-    def getStartCoords(self):
-        return self.startCoords
-    
-    def getPlayerLocation(self):
-        return self.playerLocation
-    
-    def getTime(self):
-        return self.time
-    
-    def lowerTime(self):
-        self.time -= 1
-
-class fishProjectiles:
-    def __init__(self, startCoords):
-        self.startCoords = startCoords
-        self.isAtEnd = False
-        self.endTimer = 60
-
-    def getStartCoords(self):
-        return self.startCoords
-    
-    def getEndCoords(self):
-        return self.endCoords
-    
+def notMoving(moves):
+    count = 0
+    if len(moves) > 2:
+        return False
+    for i in range (1, len(moves)):
+        if moves[i] == moves[i-2]:
+            count +=1
+    return count > 5

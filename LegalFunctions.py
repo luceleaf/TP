@@ -15,6 +15,22 @@ def isLegalOneX(app, original, move, y):
     elif newX < 0 or newX > app.mapWidth:
         return False
     return True
+
+def spawninWall(app, coords):
+    x, y = coords
+    if (app.mapAdd <= x <= app.mapAdd + 3*app.mapWidth/8 and
+        2*app.mapHeight/8 <= y <= 3*app.mapHeight/8):
+        return True
+    elif (app.mapAdd <= x <= app.mapAdd + 3*app.mapWidth/8 and
+          5*app.mapHeight/8 <= y <= 6*app.mapHeight/8):
+        return True
+    elif (5*app.mapWidth/8 + x <= x <= app.mapAdd + app.mapWidth and
+          5*app.mapHeight/8 <= y <= 6*app.mapHeight/8):
+        return True
+    elif (5*app.mapWidth/8  <= x <= app.mapAdd + app.mapWidth and
+          2*app.mapHeight/8 <= y <= 3*app.mapHeight/8):
+        return True
+    return False
     
 def isLegalOneY(app, original, move, x):
     newY = original + move

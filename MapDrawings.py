@@ -64,17 +64,22 @@ def drawMapOne(app, setWidth, setHeight, addX, addY):
     drawRect(5*setWidth/8 + addX + app.mapAdd, 6*setHeight/8 + addY,
              3*setWidth/8, 2*setHeight/8, fill = 'lightGreen')
     #top left obstacle
-    drawRect(addX + app.mapAdd, 2*setHeight/8 + addY,
-             3*setWidth/8, setHeight/8, fill = 'Gray')
-    #bottom left obstacle
-    drawRect(addX + app.mapAdd, 5*setHeight/8 + addY,
-             3*setWidth/8, setHeight/8, fill = 'Gray')
-    #top right obstacle
-    drawRect(5*setWidth/8 + addX + app.mapAdd, 2*setHeight/8 + addY,
-             3*setWidth/8, setHeight/8, fill = 'Gray')
-    #bottom right obstacle
-    drawRect(5*setWidth/8 + addX + app.mapAdd, 5*setHeight/8 + addY,
-             3*setWidth/8, setHeight/8, fill = 'Gray')
+
+
+    # drawRect(addX + app.mapAdd, 2*setHeight/8 + addY,
+    #          3*setWidth/8, setHeight/8, fill = 'Gray')
+    # #bottom left obstacle
+    # drawRect(addX + app.mapAdd, 5*setHeight/8 + addY,
+    #          3*setWidth/8, setHeight/8, fill = 'Gray')
+    # #top right obstacle
+    # drawRect(5*setWidth/8 + addX + app.mapAdd, 2*setHeight/8 + addY,
+    #          3*setWidth/8, setHeight/8, fill = 'Gray')
+    # #bottom right obstacle
+    # drawRect(5*setWidth/8 + addX + app.mapAdd, 5*setHeight/8 + addY,
+    #          3*setWidth/8, setHeight/8, fill = 'Gray')
+    for wallX in app.walls:
+        wallX.draw(app)
+    
     #water portion of map
     drawRect(addX + app.mapAdd, 3*setHeight/8 + addY,
              2*setWidth/8, 2*setHeight/8, fill = 'lightBlue')
@@ -87,8 +92,8 @@ def drawMapOne(app, setWidth, setHeight, addX, addY):
              setWidth/8, 2*setHeight/8, fill = 'Green')
     if addX == 0 and addY == 0 and app.sprite.getCurrentHealth() > 0:
         drawArrow(app)
-        drawBeam(app)
         drawFish(app)
+        drawBomb(app)
         currHealthRatio = app.sprite.getCurrentHealth()/app.sprite.getTotalHealth()
         drawRect(6*setWidth/8 + app.mapAdd, 0, 
                 2*setWidth/8, setHeight/8, fill = 'White', border = 'Black')
@@ -154,6 +159,14 @@ def drawGameOver(app):
     drawLabel(f'You survived {int(app.counter/30)} seconds', app.mapWidth/2 + app.mapAdd,
               6*app.mapHeight/16, size = 24)
     
+def drawPauseScreen(app):
+    drawRect(app.mapWidth/2 + app.mapAdd, app.mapHeight/2, 14*app.mapWidth/16, 3*app.mapHeight/8,
+             align = 'center', fill = 'White', border = 'Black')
+    drawLabel(f'You have survived for {app.counter/30} seconds so far', app.mapWidth/2 + app.mapAdd, 3*app.mapHeight/8)
+    drawLabel(f'Current Upgrades:', app.mapWidth/2 + app.mapAdd, 7*app.mapHeight/16)
+    if app.hasUpgrade:
+        drawRect(app.mapWidth/3 + app.mapAdd, 5*app.mapHeight/8, app.mapWidth/6, app.mapHeight/8)
+    
 # open function, online
 def drawScoreboard(app):
     drawLabel('Scoreboard', app.mapWidth/2 + app.mapAdd, app.mapHeight/4,
@@ -171,34 +184,24 @@ def drawArrow(app):
         x, y = arrow.getStartCoords()
         drawCircle(x, y, 20, fill = 'Black')
 
-def drawBeam(app):
-    for beam in app.beamList:
-        xStart, yStart = beam.startCoords
-        xEnd, yEnd = beam.endCoords
-        xMidpoint = abs(xStart - xEnd)
-        yMidpoint = abs(yStart - yEnd)
-        if beam.time > 60:
-            drawRect(xMidpoint, yMidpoint, 2*app.mapWidth, 10, 
-                     align = 'center', rotateAngle = beam.angle, fill = 'Yellow')
-        elif beam.time > 30:
-            drawRect(xMidpoint, yMidpoint, 2*app.mapWidth, 20, 
-                     align = 'center', rotateAngle = beam.angle, fill = 'Yellow')
+def drawBomb(app):
+    for bomb in app.bombList:
+        x, y = bomb.startCoords
+        if bomb.isAtEnd == False:
+            drawCircle(x, y, 10, fill = 'Red')
         else:
-            drawRect(xMidpoint, yMidpoint, 2*app.mapWidth, 30, 
-                     align = 'center', rotateAngle = beam.angle, fill = 'Yellow')
-            
+            drawCircle(x, y, 30, fill = 'Red')
+
 def drawFish(app):
     for fish in app.fishList:
+        x, y = fish.startCoords
         if fish.isAtEnd == False:
-            x, y = fish.startCoords
             drawCircle(x, y, 10, fill = 'lightBlue')
         else:
             color = 'lightBlue'
             if fish.endTimer <= 30:
                 color = 'Blue'
-            x, y = fish.startCoords
             drawCircle(x, y, 30, fill = color)
-
         
 
 

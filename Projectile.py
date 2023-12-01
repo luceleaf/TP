@@ -17,9 +17,10 @@ class arrowProjectiles:
     def getDirection(self):
         return self.direction
     
-    def __repr__(self):
-        return (f'''name = {self.name},
-                size = {self.size}''')
+    def move(self, num):
+        x, y = self.startCoords
+        x += num
+        self.startCoords = (x, y)
     
 class fishProjectiles:
     def __init__(self, startCoords):
@@ -31,72 +32,52 @@ class fishProjectiles:
     def getStartCoords(self):
         return self.startCoords
     
-class bombProjectiles:
-    def __init__(self, startCoords, endCoords):
-        self.startCoords = startCoords
-        self.endCoords = endCoords
-        self.endTimer = 60
-        self.isAtEnd = False
-        self.countStationary = 0
-        self.moves = []
+    def move(self, num):
+        x, y = self.startCoords
+        x += num
+        self.startCoords = (x, y)
 
-    def getStartCoords(self):
-        return self.startCoords
-    
-    def getEndCoords(self):
-        return self.endCoords
+class karthusProjectiles:
+    def __init__(self, coordinates):
+        self.coordinates = coordinates
+        self.radius = 20
+
+    def move(self, num):
+        x, y = self.coordinates
+        x += num
+        self.coordinates = (x, y)
 
 def sendProjectile(app):
     index = randrange(0,3)
-    if index == 0:
+    if index == 0 and len(app.arrowList) < 6:
         shootArrow(app)
-    elif index == 1:
-        shootBomb(app)
-    elif index == 2:
+    elif index == 1 and len(app.karthusList) < 6:
+        shootKarthus(app)
+    elif index == 2 and len(app.fishList) < 6:
         shootFish(app)
 
-def shootBomb(app):
-    startCoords = createCoords(app)
-    while spawninWall(app, startCoords):
-        startCoords = createCoords(app)
-    endCoords = findModeCoords(app)
-    app.bombList.append(bombProjectiles(startCoords, endCoords))
+def shootKarthus(app):
+    coords = findModeCoords(app)
+    app.karthusList.append(karthusProjectiles(coords))
 
-def bombMove(app):
-    aliveBombs = []
-    for bomb in app.bombList:
-        x, y = bomb.startCoords
-        bomb.moves.append((x,y))
-        xEnd, yEnd = bomb.endCoords
-        if x == xEnd and y == yEnd or notMoving(bomb.moves):
-            bomb.isAtEnd = True
-        moveX, moveY = bomb.endCoords
-        xDirection = direction(x, moveX)
-        yDirection = direction(y, moveY)
-        if isLegalOneX(app, x, xDirection, y):
-            x += xDirection
-        if isLegalOneY(app, y, yDirection, x):
-            y += yDirection
-        if bomb.isAtEnd == False:
-            bomb.startCoords = (x,y)
-            aliveBombs.append(bomb)
-        else:
-            if bomb.endTimer != 0:
-                bomb.endTimer -= 1
-                aliveBombs.append(bomb)
-    app.bombList = aliveBombs
+def karthusMove(app):
+    aliveKarthus = []
+    for karthus in app.karthusList:
+        karthus.radius += 0.2
+        if karthus.radius < 40:
+            aliveKarthus.append(karthus)
+    app.karthusList = aliveKarthus
 
-def bombCollision(app):
-    aliveBombs = []
-    for bomb in app.bombList:
-        x, y = bomb.startCoords
-        if not bomb.isAtEnd and dist(x, y, app.charX, app.charY) <= app.charSize + 10:
-            app.sprite.smallBombCollision()
-        elif bomb.isAtEnd and dist(x, y, app.charX, app.charY) <= app.charSize + 30:
-            app.sprite.largeBombCollision()
-        else:
-            aliveBombs.append(bomb)
-    app.bombList = aliveBombs
+def karthusCollision(app):
+    aliveKarthus = []
+    for karthus in app.karthusList:
+        x, y = karthus.coordinates
+        if karthus.radius > 35:
+            if dist(x, y, app.charX, app.charY) <= app.charSize + karthus.radius:
+                app.sprite.karthusHit()
+                continue
+        aliveKarthus.append(karthus)
+    app.karthusList = aliveKarthus
 
 def shootFish(app):
     startCoords = createCoords(app)
@@ -114,10 +95,14 @@ def fishMove(app):
             moveX, moveY = app.charX, app.charY
             xDirection = direction(x, moveX)
             yDirection = direction(y, moveY)
-            if isLegalOneX(app, x, xDirection, y):
+            if isLegalOneX(app, x, y, xDirection*2, yDirection*2):
                 x += xDirection*2
-            if isLegalOneY(app, y, yDirection, x):
                 y += yDirection*2
+            else: 
+                if isLegalOneX(app, x, y, xDirection*2, 0):
+                    x += xDirection*2
+                if isLegalOneX(app, x, y, 0, yDirection*2):
+                    y += yDirection*2
             fish.startCoords = (x,y)
             aliveFish.append(fish)
         else:
@@ -137,8 +122,10 @@ def fishCollision(app):
 def shootArrow(app):
     startCoords = createCoords(app)
     direction = chooseDirection(app)
-    while spawninWall(app, startCoords):
-        startCoords = createCoords(app)
+    startX, startY = startCoords
+    for wall in app.walls:
+        if wall.collide(app, startX, startY):
+            startCoords = createCoords(app)
     while sameSideChecker(startCoords, direction):
         direction = chooseDirection(app)
     app.arrowList.append(arrowProjectiles(startCoords, direction))
@@ -148,11 +135,8 @@ def arrowMove(app):
     for arrow in app.arrowList:
         x, y = arrow.startCoords
         xDirection, yDirection = arrow.direction
-        if isLegalOneX(app, x, xDirection, y):
+        if isLegalOneX(app, x, y, xDirection, yDirection):
             x += xDirection
-        else: 
-            xDirection *= -1
-        if isLegalOneY(app, y, yDirection, x):
             y += yDirection
         else:
             yDirection *= -1
@@ -212,10 +196,15 @@ def direction(original, new):
 
 def findModeCoords(app):
     setCoords = set(app.charCoords)
+    karthusCoords = set()
+    for karthus in app.karthusList:
+        karthusCoords.add(karthus.coordinates)
     bestCoords = None
     bestCount = 0
     for coords in setCoords:
         currCount = app.charCoords.count(coords)
+        if coords in karthusCoords:
+            continue
         if currCount > bestCount:
             bestCount = currCount
             bestCoords = coords

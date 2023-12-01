@@ -19,8 +19,8 @@ def fullGameReset(app):
     app.map1 = False
     app.gamePaused = False
     app.gameOver = False
-    app.width = 700
-    app.height = 700
+    app.width = 790
+    app.height = 790
     app.mapWidth, app.mapHeight = app.width, app.height
     app.mapAdd = 0
     app.square = True
@@ -34,10 +34,10 @@ def fullGameReset(app):
     app.counter = 0
     app.amountMoved = 0
     app.edgeX = app.mapWidth/8
-    app.projectiles = ['arrow', 'beam', 'fish']
+    app.projectiles = ['arrow', 'beam', 'bomb']
     app.arrowList = []
     app.charCoords = []
-    app.fishList = []
+    app.bombList = []
     app.karthusList = []
     app.upgradesList = []
     app.activeUpgrade = None
@@ -64,7 +64,7 @@ def softReset(app):
     app.counter = 0
     app.arrowList = []
     app.charCoords = []
-    app.fishList = []
+    app.bombList = []
     app.karthusList = []
     app.hasUpgrade = False
     app.gamePaused = False
@@ -76,14 +76,14 @@ def onStep(app):
     if app.map1 and not app.gamePaused:
         healthChecker(app)
         app.counter +=1
-        if app.sprite.stunTime != 0:
+        if app.sprite.stunTime == 0:
             characterMove(app, app.sprite.speed)
         else:
             app.sprite.lowerStun(app)
         arrowMove(app)
         arrowCollision(app)
-        fishMove(app)
-        fishCollision(app)
+        bombMove(app)
+        bombCollision(app)
         karthusMove(app)
         karthusCollision(app)
         upgradeCollision(app)
@@ -133,10 +133,10 @@ def screenMoveLeft(app, stepNum):
             arrow.move(-1*stepNum)
         for karthus in app.karthusList:
             karthus.move(-1*stepNum)
-        for fish  in app.fishList:
-            fish.move(-1*stepNum)
+        for bomb  in app.bombList:
+            bomb.move(-1*stepNum)
         for upgrade in app.upgradesList:
-            upgrade.move(stepNum)
+            upgrade.move(-1*stepNum)
 
 def screenMoveRight(app, stepNum):
     if(app.amountMoved > -app.mapWidth):
@@ -149,8 +149,8 @@ def screenMoveRight(app, stepNum):
             arrow.move(stepNum)
         for karthus in app.karthusList:
             karthus.move(stepNum)
-        for fish  in app.fishList:
-            fish.move(stepNum)
+        for bomb  in app.bombList:
+            bomb.move(stepNum)
         for upgrade in app.upgradesList:
             upgrade.move(stepNum)
         
@@ -299,5 +299,12 @@ def upgradeChecker(app):
         if app.sprite.timer == 0:
             app.sprite.shield = 0
             app.sprite.speed = app.sprite.baseSpeed
+
+# def holdImages(app):
+#     app.arrowImage = CMUImage(Image.open('images/arrow.png'))
+#     app.karthusImage = CMUImage(Image.open('images/karthus.png'))
+#     app.ziggs1 = CMUImage(Image.open('images/ziggs1.png'))
+#     app.ziggs2 = CMUImage(Image.open('images/ziggs2.png'))
+#     app.ziggs3 = CMUImage(Image.open('images/ziggs3.png'))
 
 runApp()

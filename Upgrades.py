@@ -1,5 +1,6 @@
 from cmu_graphics import *
 import random
+from PIL import Image
 
 def sendUpgrade(app):
     index = randrange(0, 3)
@@ -55,7 +56,8 @@ class Upgrades:
     def __init__(self, name, coords):
         self.name = name
         self.coords = coords
-        self.radius = 10
+        self.radius = 15
+        self.image = CMUImage(Image.open(f'images/{self.name}.png'))
     
     def __repr__(self):
         return self.name

@@ -3,13 +3,15 @@ import random
 from MapDrawings import *
 from cmu_graphics import *
 from LegalFunctions import *
+from PIL import Image
 
 class arrowProjectiles:
     def __init__(self, startCoords, direction):
         self.startCoords = startCoords
         self.direction = direction
         self.time = 0
-        self.arrowSize = 20
+        self.radius = 25
+        self.image = CMUImage(Image.open('images/arrow.png'))
     
     def getStartCoords(self):
         return self.startCoords
@@ -22,12 +24,16 @@ class arrowProjectiles:
         x += num
         self.startCoords = (x, y)
     
-class fishProjectiles:
+class bombProjectiles:
     def __init__(self, startCoords):
         self.startCoords = startCoords
         self.isAtEnd = False
         self.endTimer = 60
+        self.radius = 15
         self.moves = []
+        self.image1 = CMUImage(Image.open('images/ziggs1.png'))
+        self.image2 = CMUImage(Image.open('images/ziggs2.png'))
+        self.image3 = CMUImage(Image.open('images/ziggs3.png'))
 
     def getStartCoords(self):
         return self.startCoords
@@ -41,6 +47,7 @@ class karthusProjectiles:
     def __init__(self, coordinates):
         self.coordinates = coordinates
         self.radius = 20
+        self.image = CMUImage(Image.open('images/karthus.png'))
 
     def move(self, num):
         x, y = self.coordinates
@@ -53,8 +60,8 @@ def sendProjectile(app):
         shootArrow(app)
     elif index == 1 and len(app.karthusList) < 6:
         shootKarthus(app)
-    elif index == 2 and len(app.fishList) < 6:
-        shootFish(app)
+    elif index == 2 and len(app.bombList) < 6:
+        shootBomb(app)
 
 def shootKarthus(app):
     coords = findModeCoords(app)
@@ -67,6 +74,7 @@ def karthusMove(app):
         if karthus.radius < 40:
             aliveKarthus.append(karthus)
     app.karthusList = aliveKarthus
+    print(app.karthusList)
 
 def karthusCollision(app):
     aliveKarthus = []
@@ -79,18 +87,18 @@ def karthusCollision(app):
         aliveKarthus.append(karthus)
     app.karthusList = aliveKarthus
 
-def shootFish(app):
+def shootBomb(app):
     startCoords = createCoords(app)
-    app.fishList.append(fishProjectiles(startCoords))
+    app.bombList.append(bombProjectiles(startCoords))
 
-def fishMove(app):
-    aliveFish = []
-    for fish in app.fishList:
-        if fish.isAtEnd == False:
-            x, y = fish.startCoords
-            fish.moves.append((x,y))
-            if notMoving(fish.moves):
-                fish.isAtEnd = True
+def bombMove(app):
+    aliveBomb = []
+    for bomb in app.bombList:
+        if bomb.isAtEnd == False:
+            x, y = bomb.startCoords
+            bomb.moves.append((x,y))
+            if notMoving(bomb.moves):
+                bomb.isAtEnd = True
                 continue
             moveX, moveY = app.charX, app.charY
             xDirection = direction(x, moveX)
@@ -103,21 +111,21 @@ def fishMove(app):
                     x += xDirection*2
                 if isLegalOneX(app, x, y, 0, yDirection*2):
                     y += yDirection*2
-            fish.startCoords = (x,y)
-            aliveFish.append(fish)
+            bomb.startCoords = (x,y)
+            aliveBomb.append(bomb)
         else:
-            if fish.endTimer != 0:
-                fish.endTimer -= 1
-                aliveFish.append(fish)
-    app.fishList = aliveFish
+            if bomb.endTimer != 0:
+                bomb.endTimer -= 1
+                aliveBomb.append(bomb)
+    app.bombList = aliveBomb
 
-def fishCollision(app):
-    for fish in app.fishList:
-        x, y = fish.startCoords
+def bombCollision(app):
+    for bomb in app.bombList:
+        x, y = bomb.startCoords
         if dist(x, y, app.charX, app.charY) <= app.charSize + 10:
-            fish.isAtEnd = True
-        elif fish.isAtEnd and fish.endTimer <= 30 and dist(x, y, app.charX, app.charY) <= app.charSize + 30:
-                app.sprite.fishCollision()
+            bomb.isAtEnd = True
+        elif bomb.isAtEnd and bomb.endTimer <= 30 and dist(x, y, app.charX, app.charY) <= app.charSize + 30:
+                app.sprite.bombCollision()
 
 def shootArrow(app):
     startCoords = createCoords(app)
@@ -151,7 +159,7 @@ def arrowCollision(app):
     aliveArrows = []
     for arrow in app.arrowList:
         xArrow, yArrow = arrow.startCoords
-        if dist(xArrow, yArrow, app.charX, app.charY) <= app.charSize + arrow.arrowSize:
+        if dist(xArrow, yArrow, app.charX, app.charY) <= app.charSize + arrow.radius:
             app.sprite.arrowHit(arrow.time)
         else:
             aliveArrows.append(arrow)

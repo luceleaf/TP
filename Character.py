@@ -41,10 +41,10 @@ class Character:
             self.shieldAmount -= 50
         else:
             self.currHealth += self.shieldAmount - 50
-        self.stunTime = timeinAir ** 0.5
+        self.stunTime = int(timeinAir ** 0.5)
         print(self.stunTime)
 
-    def fishCollision(self):
+    def bombCollision(self):
         if self.shieldAmount >= 20:
             self.shieldAmount -= 20
         else:
@@ -70,6 +70,6 @@ class Character:
             self.stunTime = 0
         self.stunTime -= 1
 
-teemo = Character('teemo', 1000, 1.5, 20, 20, 'yellow')
+teemo = Character('teemo', 1000, 1.5, 50, 20, 'yellow')
 ahri = Character('ahri', 1500, 1, 75, 30, 'pink')
-malphite = Character('malphite', 3000, 0.5, 50, 20, 'purple')
+malphite = Character('malphite', 3000, 0.5, 100, 40, 'purple')

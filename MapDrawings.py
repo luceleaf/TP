@@ -73,7 +73,7 @@ def drawMapOne(app, setWidth, setHeight, addX, addY):
         object.draw(app)
     if addX == 0 and addY == 0 and app.sprite.getCurrentHealth() > 0:
         drawArrow(app)
-        drawFish(app)
+        drawBomb(app)
         drawKarthus(app)
         drawUpgrades(app)
         currHealthRatio = app.sprite.getCurrentHealth()/app.sprite.getTotalHealth()
@@ -89,6 +89,9 @@ def drawMapOne(app, setWidth, setHeight, addX, addY):
                  2*setWidth/8*shieldRatio, setHeight/16, border = 'Black', fill = 'lightBlue')
         drawLabel(f'{app.sprite.getCurrentHealth()} / {app.sprite.getTotalHealth()}',
                   7*setWidth/8 + app.mapAdd, 3*setHeight/32)
+        if app.activeUpgrade != None:
+            drawImage(CMUImage(Image.open(f'images/{app.activeUpgrade}.png')),
+                  5*setWidth/8, 0, width = setWidth/8, height = setHeight/8)
 
 def drawMapTwo(app, setWidth, setHeight, addX, addY):
     drawPolygon(6*setWidth/16 + addX + app.mapAdd, 6*setHeight/16 + addY,
@@ -166,37 +169,35 @@ def drawScoreboard(app):
 def drawArrow(app):
     for arrow in app.arrowList:
         x, y = arrow.getStartCoords()
-        drawCircle(x, y, 20, fill = 'Black')
+        drawImage(arrow.image, x, y, align = 'center',
+            width = 2*arrow.radius, height = 2*arrow.radius)
 
 def drawKarthus(app):
     for karthus in app.karthusList:
         x, y = karthus.coordinates
-        drawCircle(x, y, karthus.radius, fill = 'darkSlateBlue',
-                   border = 'Black')
+        drawImage(karthus.image, x, y, align = 'center',
+            width = 2*karthus.radius, height = 2*karthus.radius)
 
-def drawFish(app):
-    for fish in app.fishList:
-        x, y = fish.startCoords
-        if fish.isAtEnd == False:
-            drawCircle(x, y, 10, fill = 'lightSteelBlue')
+def drawBomb(app):
+    for bomb in app.bombList:
+        x, y = bomb.startCoords
+        if bomb.isAtEnd == False:
+            drawImage(bomb.image1, x, y, align = 'center',
+                      width = 2*bomb.radius, height = 2*bomb.radius)
         else:
-            color = 'lightSteelBlue'
-            if fish.endTimer <= 30:
-                color = 'Blue'
-            drawCircle(x, y, 30, fill = color)
-        
+            if bomb.endTimer <= 30:
+                drawImage(bomb.image3, x, y, align = 'center',
+                      width = 2*(30), height = 2*30)
+            else:
+                drawImage(bomb.image2, x, y, align = 'center',
+                      width = 2*(30), height = 2*30)
 def drawUpgrades(app):
     for upgrade in app.upgradesList:
         x, y = upgrade.coords
-        if upgrade.name == 'shield':
-            drawCircle(x, y, 10, fill = 'pink')
-        elif upgrade.name == 'flash':
-            drawCircle(x, y, 10, fill = 'blue')
-        else:
-            drawCircle(x, y, 10, fill = 'red')
+        drawImage(upgrade.image, x, y, align = 'center',
+                  width = 2*upgrade.radius, height = 2*upgrade.radius)
 
 def drawCharacter(app):
-    drawCircle(app.charX, app.charY, 30)
     drawImage(app.sprite.image, app.charX, app.charY, align = 'center',
               width = app.sprite.size, height = app.sprite.size)
 

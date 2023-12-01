@@ -60,5 +60,10 @@ class Upgrades:
     def __repr__(self):
         return self.name
     
+    def move(self, num):
+        x, y = self.coords
+        x += num
+        self.coords = (x,y)
+    
 def dist(x0, y0, x1, y1):
     return ((x1-x0)**2 + (y1-y0)**2)**(1/2)

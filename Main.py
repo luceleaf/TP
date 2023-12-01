@@ -4,7 +4,9 @@ from MapDrawings import *
 from LegalFunctions import *
 from Projectile import *
 from wall import *
+from PIL import Image
 import random
+from Upgrades import *
 
 def onAppStart(app):
     fullGameReset(app)
@@ -13,9 +15,8 @@ def fullGameReset(app):
     app.startScreen = True
     app.scoreboard = False
     app.characterSelect = False
-    app.mapSelect = False
+    app.ruleScreen = False
     app.map1 = False
-    app.map2 = False
     app.gamePaused = False
     app.gameOver = False
     app.width = 700
@@ -28,24 +29,32 @@ def fullGameReset(app):
     app.moveToX = None
     app.moveToY = None
     app.sprite = None
+    app.background = 'White'
     app.scores = []
     app.counter = 0
+    app.amountMoved = 0
+    app.edgeX = app.mapWidth/8
     app.projectiles = ['arrow', 'beam', 'fish']
     app.arrowList = []
     app.charCoords = []
     app.fishList = []
-    app.bombList = []
-    wall1 = Wall(app.mapAdd, 2*app.mapHeight/8,
-             3*app.mapWidth/8, app.mapHeight/8)
-    wall2 = Wall(app.mapAdd, 5*app.mapHeight/8,
-             3*app.mapWidth/8, app.mapHeight/8)
-    wall3 = Wall(5*app.mapWidth/8 + app.mapAdd, 2*app.mapHeight/8,
-             3*app.mapWidth/8, app.mapHeight/8)
+    app.karthusList = []
+    app.upgradesList = []
+    app.activeUpgrade = None
+    wall1 = Wall(app.mapAdd+3*app.mapWidth/8, 2*app.mapHeight/8,
+             6*app.mapWidth/8, app.mapHeight/8, 'right-top', "grey")
+    wall2 = Wall(app.mapAdd + 5*app.mapHeight/8, 2*app.mapHeight/8,
+             6*app.mapWidth/8, app.mapHeight/8, 'left-top', "grey")
+    wall3 = Wall(3*app.mapWidth/8 + app.mapAdd, 5*app.mapHeight/8,
+             6*app.mapWidth/8, app.mapHeight/8,'right-top', "grey")
     wall4 = Wall(5*app.mapWidth/8 + app.mapAdd, 5*app.mapHeight/8,
-             3*app.mapWidth/8, app.mapHeight/8)
+             6*app.mapWidth/8, app.mapHeight/8, 'left-top', "grey")
     app.walls = [wall1,wall2,wall3,wall4]
-    
-    app.hasUpgrade = False
+    riverLeft = GrassWater(3*app.mapWidth/8 + app.mapAdd, 3*app.mapHeight/8, app.mapWidth/8, 2*app.mapHeight/8, 'right-top', 'Green')
+    grassLeft = GrassWater(2*app.mapWidth/8 + app.mapAdd, 3*app.mapHeight/8, 8*app.mapWidth/8, 2*app.mapHeight/8, 'right-top', 'lightBlue')
+    riverRight = GrassWater(6*app.mapWidth/8 + app.mapAdd, 3*app.mapHeight/8, 8*app.mapWidth/8, 2*app.mapHeight/8, 'left-top', 'lightBlue')
+    grassRight = GrassWater(5*app.mapWidth/8 + app.mapAdd, 3*app.mapHeight/8, app.mapWidth/8, 2*app.mapHeight/8, 'left-top', 'Green')
+    app.objects = [riverLeft, riverRight, grassLeft, grassRight]
     app.charSize = None
     scores = open('scoreboard.txt', 'r')
     for line in scores:
@@ -56,7 +65,7 @@ def softReset(app):
     app.arrowList = []
     app.charCoords = []
     app.fishList = []
-    app.bombList = []
+    app.karthusList = []
     app.hasUpgrade = False
     app.gamePaused = False
 
@@ -67,35 +76,79 @@ def onStep(app):
     if app.map1 and not app.gamePaused:
         healthChecker(app)
         app.counter +=1
-        characterMove(app, 1)
+        if app.sprite.stunTime != 0:
+            characterMove(app, app.sprite.speed)
+        else:
+            app.sprite.lowerStun(app)
         arrowMove(app)
         arrowCollision(app)
         fishMove(app)
         fishCollision(app)
-        bombMove(app)
-        bombCollision(app)
+        karthusMove(app)
+        karthusCollision(app)
+        upgradeCollision(app)
+        upgradeChecker(app)
     if app.counter != 0 and app.counter % 60 == 0:
-        app.charCoords.append((app.charX, app.charY))
+        addCoordinates(app)
         sendProjectile(app)
-    if app.counter == 3600:
-        app.hasUpgrade = True
+    if app.counter != 0 and app.counter % 300 == 0:
+        sendUpgrade(app)
+
+def addCoordinates(app):
+    if len(app.charCoords) > 20:
+        app.charCoords.pop(0)
+    app.charCoords.append((app.charX, app.charY))
 
 def characterMove(app, stepNum):
+    moveX = 0
+    moveY = 0
     if app.moveToX != None and app.moveToX != app.charX:
         if app.charX > app.moveToX:
             moveX = -1*stepNum
         else:
             moveX = 1*stepNum
-        if isLegalOneX(app, app.charX, moveX, app.charY):
-            app.charX += moveX
-    if app.moveToY != None and app.moveToY != app.charY:
+    if app.moveToY != None and app.moveToY != app.charX:
         if app.charY > app.moveToY:
             moveY = -1*stepNum
-        else:
+        elif app.charY < app.moveToY:
             moveY = 1*stepNum
-        if isLegalOneY(app, app.charY, moveY, app.charX):
-            app.charY += moveY
+        
+    if isLegalOneX(app, app.charX, app.charY, moveX, moveY):
+        app.charX += moveX
+        app.charY += moveY
+        app.amountMoved += moveX
+        if moveX > 0 and app.charX > app.mapWidth - app.edgeX:
+            screenMoveLeft(app, stepNum)
+        elif moveX < 0 and app.charX < app.edgeX:
+                screenMoveRight(app, stepNum)
+        
+def screenMoveLeft(app, stepNum):
+    if(app.amountMoved < app.mapWidth):
+        app.charX = app.mapWidth - app.edgeX
+        for wallX in app.walls:
+            wallX.move(-1*stepNum)
+        for object in app.objects:
+            object.move(-1*stepNum)
+        for arrow in app.arrowList:
+            arrow.move(-1*stepNum)
+        for karthus in app.karthusList:
+            karthus.move(-1*stepNum)
+        for fish  in app.fishList:
+            fish.move(-1*stepNum)
 
+def screenMoveRight(app, stepNum):
+    if(app.amountMoved > -app.mapWidth):
+        app.charX = app.edgeX
+        for wallX in app.walls:
+            wallX.move(stepNum)
+        for object in app.objects:
+            object.move(stepNum)
+        for arrow in app.arrowList:
+            arrow.move(stepNum)
+        for karthus in app.karthusList:
+            karthus.move(stepNum)
+        for fish  in app.fishList:
+            fish.move(stepNum)
         
 def canvasSize(app):
     mapSize = min(app.width, app.height)
@@ -110,11 +163,11 @@ def redrawAll(app):
         drawScoreboard(app)
     elif app.characterSelect:
         drawCharacterSelect(app)
-    elif app.mapSelect:
-        drawMapSelect(app)
+    elif app.ruleScreen:
+        drawRuleScreen(app)
     elif app.map1:
         drawMapOne(app, app.mapWidth, app.mapHeight, 0, 0)
-        drawCircle(app.charX, app.charY, 20, fill = app.sprite.getColor())
+        drawCharacter(app)
     elif app.map2:
         drawMapTwo(app, app.mapWidth, app.mapHeight, 0, 0)
         drawCircle(app.charX, app.charY, 5, fill = app.sprite.getColor())
@@ -124,7 +177,7 @@ def redrawAll(app):
         drawPauseScreen(app)
 
 def onMousePress(app, mouseX, mouseY):
-    if app.map1 == True or app.map2 == True:
+    if app.map1 == True:
         app.moveToX = mouseX
         app.moveToY = mouseY
     elif app.startScreen == True:
@@ -139,26 +192,19 @@ def onMousePress(app, mouseX, mouseY):
     elif app.characterSelect == True:
         if dist(mouseX, mouseY, app.mapWidth/4 + app.mapAdd, app.mapHeight/2) <= 40:
             app.characterSelect = False
-            app.mapSelect = True
+            app.ruleScreen = True
             app.sprite = teemo
+            app.charSize = app.sprite.size
         elif dist(mouseX, mouseY, 2*app.mapWidth/4 + app.mapAdd, app.mapHeight/2) <= 50:
             app.characterSelect = False
-            app.mapSelect = True
+            app.ruleScreen = True
             app.sprite = ahri
+            app.charSize = app.sprite.size
         elif dist(mouseX, mouseY, 3*app.mapWidth/4 + app.mapAdd, app.mapHeight/2) <= 60:
             app.characterSelect = False
-            app.mapSelect = True
+            app.ruleScreen = True
             app.sprite = malphite
-    elif app.mapSelect == True:
-        app.charSize = app.sprite.size
-        if (app.mapWidth/8 + app.mapAdd <= mouseX <= app.mapWidth/8 + app.mapWidth/4 + app.mapAdd and
-            3*app.mapHeight/8 <= mouseY <= 3*app.mapHeight/8+app.mapHeight/4):
-            app.mapSelect = False
-            app.map1 = True
-        elif (5*app.mapWidth/8 + app.mapAdd <= mouseX <= 5*app.mapWidth/8 + app.mapWidth/4 + app.mapAdd and
-            3*app.mapHeight/8 <= mouseY <= 3*app.mapHeight/8+app.mapHeight/4):
-            app.mapSelect = False
-            app.map2 = True
+            app.charSize = app.sprite.size
     elif app.gameOver == True:
         if (app.mapWidth/4 + app.mapAdd <= mouseX <= app.mapWidth/4 + app.mapWidth/2 + app.mapAdd and
             app.mapHeight/2 <= mouseY <= app.mapHeight/2 + app.mapHeight/8):
@@ -180,8 +226,8 @@ def onKeyPress(app, key):
         elif app.map2 == True:
             app.map2 = False
             app.mapSelect = True
-        elif app.mapSelect == True:
-            app.mapSelect = False
+        elif app.ruleScreen == True:
+            app.ruleScreen = False
             app.characterSelect = True
         elif app.characterSelect == True:
             app.characterSelect = False
@@ -189,9 +235,13 @@ def onKeyPress(app, key):
         elif app.scoreboard == True:
             app.scoreboard = False
             app.startScreen = True
+    if app.ruleScreen:
+        if key == 'space':
+            app.ruleScreen = False
+            app.map1 = True
     if app.map1:
-        if key == 'f' and app.hasUpgrade == True:
-            characterMove(app, 50)
+        if key == 'f' and app.activeUpgrade != None:
+            upgradeUse(app)
         if key == 'p':
             app.gamePaused = not app.gamePaused
 
@@ -228,7 +278,25 @@ def direction(original, new):
 def healthChecker(app):
     if app.sprite.getCurrentHealth() <= 0:
         app.gameOver = True
+        app.background = 'White'
         app.map1 = False
         updateScoreboard(app)
+
+def upgradeUse(app):
+    if app.activeUpgrade == 'shield':
+        missingHP = app.sprite.totalHealth - app.sprite.currHealth
+        app.sprite.createShield(missingHP*0.75)
+    elif app.activeUpgrade == 'flash':
+        characterMove(app, 50)
+    else:
+        app.sprite.heal()
+    app.activeUpgrade = None
+
+def upgradeChecker(app):
+    if app.sprite.timer != 0:
+        app.sprite.timer -= 1
+        if app.sprite.timer == 0:
+            app.sprite.shield = 0
+            app.sprite.currSpeed = app.sprite.speed
 
 runApp()

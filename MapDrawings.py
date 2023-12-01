@@ -1,4 +1,5 @@
 from cmu_graphics import *
+from PIL import Image
 
 def drawStartScreen(app):
     drawRect(app.mapWidth/4 + app.mapAdd, app.mapHeight/2, app.mapWidth/2, app.mapHeight/8, 
@@ -18,12 +19,12 @@ def drawStartScreen(app):
 def drawCharacterSelect(app):
     drawLabel('Character Selection', app.mapWidth/2 + app.mapAdd, app.mapHeight/4,
                 size = 60, bold = True)
-    drawCircle(app.mapWidth/4 + app.mapAdd, 
-               app.mapHeight/2, 40, fill = 'yellow')
-    drawCircle(2*app.mapWidth/4 + app.mapAdd, 
-               app.mapHeight/2, 50, fill = 'pink')
-    drawCircle(3*app.mapWidth/4 + app.mapAdd, 
-               app.mapHeight/2, 60, fill = 'purple')
+    drawImage(CMUImage(Image.open('images/teemo.png')), app.mapWidth/4 + app.mapAdd,
+              app.mapHeight/2, align = 'center', width = 50, height = 50)
+    drawImage(CMUImage(Image.open('images/ahri.png')), 2*app.mapWidth/4 + app.mapAdd,
+              app.mapHeight/2, align = 'center', width = 75, height = 75)
+    drawImage(CMUImage(Image.open('images/malphite.png')), 3*app.mapWidth/4 + app.mapAdd,
+              app.mapHeight/2, align = 'center', width = 100, height = 100)
 
     drawLabel('Teemo', app.mapWidth/4 + app.mapAdd, 3*app.mapHeight/4,
                 size = 20, bold = True)
@@ -51,6 +52,9 @@ def drawCharacterSelect(app):
     drawLabel('large but being a rock,', 3*app.mapWidth/4 + app.mapAdd, 56*app.mapHeight/64, bold = True)
     drawLabel('he has very high health.', 3*app.mapWidth/4 + app.mapAdd, 57*app.mapHeight/64, bold = True)      
 
+def drawRuleScreen(app):
+    drawImage(CMUImage(Image.open('images/rulescreen.png')), 0, 0, width = app.mapWidth, height = app.mapHeight)
+
 def drawMapOne(app, setWidth, setHeight, addX, addY):
     #grass portions of map
     drawRect(3*setWidth/8 + addX + app.mapAdd, addY,
@@ -63,37 +67,15 @@ def drawMapOne(app, setWidth, setHeight, addX, addY):
              3*setWidth/8, 2*setHeight/8, fill = 'lightGreen')
     drawRect(5*setWidth/8 + addX + app.mapAdd, 6*setHeight/8 + addY,
              3*setWidth/8, 2*setHeight/8, fill = 'lightGreen')
-    #top left obstacle
-
-
-    # drawRect(addX + app.mapAdd, 2*setHeight/8 + addY,
-    #          3*setWidth/8, setHeight/8, fill = 'Gray')
-    # #bottom left obstacle
-    # drawRect(addX + app.mapAdd, 5*setHeight/8 + addY,
-    #          3*setWidth/8, setHeight/8, fill = 'Gray')
-    # #top right obstacle
-    # drawRect(5*setWidth/8 + addX + app.mapAdd, 2*setHeight/8 + addY,
-    #          3*setWidth/8, setHeight/8, fill = 'Gray')
-    # #bottom right obstacle
-    # drawRect(5*setWidth/8 + addX + app.mapAdd, 5*setHeight/8 + addY,
-    #          3*setWidth/8, setHeight/8, fill = 'Gray')
     for wallX in app.walls:
         wallX.draw(app)
-    
-    #water portion of map
-    drawRect(addX + app.mapAdd, 3*setHeight/8 + addY,
-             2*setWidth/8, 2*setHeight/8, fill = 'lightBlue')
-    drawRect(6*setWidth/8 + addX + app.mapAdd, 3*setHeight/8 + addY,
-             2*setWidth/8, 2*setHeight/8, fill = 'lightBlue')
-    #green portion of map
-    drawRect(2*setWidth/8 + app.mapAdd + addX, 3*setHeight/8 + addY,
-             setWidth/8, 2*setHeight/8, fill = 'Green')
-    drawRect(5*setWidth/8 + app.mapAdd + addX, 3*setHeight/8 + addY,
-             setWidth/8, 2*setHeight/8, fill = 'Green')
+    for object in app.objects:
+        object.draw(app)
     if addX == 0 and addY == 0 and app.sprite.getCurrentHealth() > 0:
         drawArrow(app)
         drawFish(app)
-        drawBomb(app)
+        drawKarthus(app)
+        drawUpgrades(app)
         currHealthRatio = app.sprite.getCurrentHealth()/app.sprite.getTotalHealth()
         drawRect(6*setWidth/8 + app.mapAdd, 0, 
                 2*setWidth/8, setHeight/8, fill = 'White', border = 'Black')
@@ -101,6 +83,10 @@ def drawMapOne(app, setWidth, setHeight, addX, addY):
                  2*setWidth/8, setHeight/16, border = 'Black', fill = 'Gray')
         drawRect(6*setWidth/8 + app.mapAdd, 0,
                  2*setWidth/8*currHealthRatio, setHeight/16, border = 'Black', fill = 'darkRed')
+        if app.sprite.shieldAmount != 0:
+            shieldRatio = app.sprite.shieldAmount / app.sprite.totalHealth
+            drawRect(6*setWidth/8 + 2*setWidth/8*currHealthRatio, 0,
+                 2*setWidth/8*shieldRatio, setHeight/16, border = 'Black', fill = 'lightBlue')
         drawLabel(f'{app.sprite.getCurrentHealth()} / {app.sprite.getTotalHealth()}',
                   7*setWidth/8 + app.mapAdd, 3*setHeight/32)
 
@@ -163,9 +149,7 @@ def drawPauseScreen(app):
     drawRect(app.mapWidth/2 + app.mapAdd, app.mapHeight/2, 14*app.mapWidth/16, 3*app.mapHeight/8,
              align = 'center', fill = 'White', border = 'Black')
     drawLabel(f'You have survived for {app.counter/30} seconds so far', app.mapWidth/2 + app.mapAdd, 3*app.mapHeight/8)
-    drawLabel(f'Current Upgrades:', app.mapWidth/2 + app.mapAdd, 7*app.mapHeight/16)
-    if app.hasUpgrade:
-        drawRect(app.mapWidth/3 + app.mapAdd, 5*app.mapHeight/8, app.mapWidth/6, app.mapHeight/8)
+    drawLabel(f'Current Upgrade', app.mapWidth/2 + app.mapAdd, 7*app.mapHeight/16)
     
 # open function, online
 def drawScoreboard(app):
@@ -184,25 +168,36 @@ def drawArrow(app):
         x, y = arrow.getStartCoords()
         drawCircle(x, y, 20, fill = 'Black')
 
-def drawBomb(app):
-    for bomb in app.bombList:
-        x, y = bomb.startCoords
-        if bomb.isAtEnd == False:
-            drawCircle(x, y, 10, fill = 'Red')
-        else:
-            drawCircle(x, y, 30, fill = 'Red')
+def drawKarthus(app):
+    for karthus in app.karthusList:
+        x, y = karthus.coordinates
+        drawCircle(x, y, karthus.radius, fill = 'darkSlateBlue',
+                   border = 'Black')
 
 def drawFish(app):
     for fish in app.fishList:
         x, y = fish.startCoords
         if fish.isAtEnd == False:
-            drawCircle(x, y, 10, fill = 'lightBlue')
+            drawCircle(x, y, 10, fill = 'lightSteelBlue')
         else:
-            color = 'lightBlue'
+            color = 'lightSteelBlue'
             if fish.endTimer <= 30:
                 color = 'Blue'
             drawCircle(x, y, 30, fill = color)
         
+def drawUpgrades(app):
+    for upgrade in app.upgradesList:
+        x, y = upgrade.coords
+        if upgrade.name == 'shield':
+            drawCircle(x, y, 10, fill = 'pink')
+        elif upgrade.name == 'flash':
+            drawCircle(x, y, 10, fill = 'blue')
+        else:
+            drawCircle(x, y, 10, fill = 'red')
 
+def drawCharacter(app):
+    drawImage(app.sprite.image, app.charX, app.charY, align = 'center',
+              width = app.sprite.size, height = app.sprite.size)
+    print(app.sprite.image)
 
 

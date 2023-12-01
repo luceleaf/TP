@@ -196,8 +196,8 @@ def drawUpgrades(app):
             drawCircle(x, y, 10, fill = 'red')
 
 def drawCharacter(app):
+    drawCircle(app.charX, app.charY, 30)
     drawImage(app.sprite.image, app.charX, app.charY, align = 'center',
               width = app.sprite.size, height = app.sprite.size)
-    print(app.sprite.image)
 
 

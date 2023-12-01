@@ -95,7 +95,7 @@ def onStep(app):
         sendUpgrade(app)
 
 def addCoordinates(app):
-    if len(app.charCoords) > 20:
+    if len(app.charCoords) > 50:
         app.charCoords.pop(0)
     app.charCoords.append((app.charX, app.charY))
 
@@ -135,6 +135,8 @@ def screenMoveLeft(app, stepNum):
             karthus.move(-1*stepNum)
         for fish  in app.fishList:
             fish.move(-1*stepNum)
+        for upgrade in app.upgradesList:
+            upgrade.move(stepNum)
 
 def screenMoveRight(app, stepNum):
     if(app.amountMoved > -app.mapWidth):
@@ -149,6 +151,8 @@ def screenMoveRight(app, stepNum):
             karthus.move(stepNum)
         for fish  in app.fishList:
             fish.move(stepNum)
+        for upgrade in app.upgradesList:
+            upgrade.move(stepNum)
         
 def canvasSize(app):
     mapSize = min(app.width, app.height)
@@ -168,9 +172,6 @@ def redrawAll(app):
     elif app.map1:
         drawMapOne(app, app.mapWidth, app.mapHeight, 0, 0)
         drawCharacter(app)
-    elif app.map2:
-        drawMapTwo(app, app.mapWidth, app.mapHeight, 0, 0)
-        drawCircle(app.charX, app.charY, 5, fill = app.sprite.getColor())
     elif app.gameOver:
         drawGameOver(app)
     if app.gamePaused:
@@ -194,17 +195,20 @@ def onMousePress(app, mouseX, mouseY):
             app.characterSelect = False
             app.ruleScreen = True
             app.sprite = teemo
-            app.charSize = app.sprite.size
+            app.charSize = app.sprite.radius
+            app.background = 'lightGreen'
         elif dist(mouseX, mouseY, 2*app.mapWidth/4 + app.mapAdd, app.mapHeight/2) <= 50:
             app.characterSelect = False
             app.ruleScreen = True
             app.sprite = ahri
-            app.charSize = app.sprite.size
+            app.charSize = app.sprite.radius
+            app.background = 'lightGreen'
         elif dist(mouseX, mouseY, 3*app.mapWidth/4 + app.mapAdd, app.mapHeight/2) <= 60:
             app.characterSelect = False
             app.ruleScreen = True
             app.sprite = malphite
-            app.charSize = app.sprite.size
+            app.charSize = app.sprite.radius
+            app.background = 'lightGreen'
     elif app.gameOver == True:
         if (app.mapWidth/4 + app.mapAdd <= mouseX <= app.mapWidth/4 + app.mapWidth/2 + app.mapAdd and
             app.mapHeight/2 <= mouseY <= app.mapHeight/2 + app.mapHeight/8):
@@ -222,9 +226,6 @@ def onKeyPress(app, key):
     if key == 'left':
         if app.map1 == True:
             app.map1 = False
-            app.mapSelect = True
-        elif app.map2 == True:
-            app.map2 = False
             app.mapSelect = True
         elif app.ruleScreen == True:
             app.ruleScreen = False
@@ -297,6 +298,6 @@ def upgradeChecker(app):
         app.sprite.timer -= 1
         if app.sprite.timer == 0:
             app.sprite.shield = 0
-            app.sprite.currSpeed = app.sprite.speed
+            app.sprite.speed = app.sprite.baseSpeed
 
 runApp()

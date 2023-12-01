@@ -3,13 +3,14 @@ from cmu_graphics import *
 from PIL import Image
 
 class Character:
-    def __init__(self, charName, totalHealth, speed, size, radius, color):
+    def __init__(self, charName, totalHealth, baseSpeed, size, radius, color):
         self.charName = charName
         self.totalHealth = totalHealth
-        self.speed = speed
+        self.baseSpeed = baseSpeed
         self.size = size
         self.color = color
         self.currHealth = totalHealth
+        self.speed = baseSpeed
         self.stunTime = 0
         self.shieldAmount = 0
         self.timer = 0
@@ -40,7 +41,8 @@ class Character:
             self.shieldAmount -= 50
         else:
             self.currHealth += self.shieldAmount - 50
-        self.stunTime = timeinAir ** 0.1
+        self.stunTime = timeinAir ** 0.5
+        print(self.stunTime)
 
     def fishCollision(self):
         if self.shieldAmount >= 20:
@@ -60,10 +62,12 @@ class Character:
 
     def heal(self):
         self.currHealth += 100
-        self.currSpeed += 30
+        self.speed *= 2
         self.timer = 90
 
     def lowerStun(self, app):
+        if self.stunTime <= 0:
+            self.stunTime = 0
         self.stunTime -= 1
 
 teemo = Character('teemo', 1000, 1.5, 20, 20, 'yellow')
